@@ -12,12 +12,17 @@ const nowTrackEl = document.getElementById("now-track");
 const nowArtistsEl = document.getElementById("now-artists");
 const nowAlbumEl = document.getElementById("now-album");
 const nowProgressEl = document.getElementById("now-progress");
+const nowProgressBarEl = document.getElementById("now-progress-bar");
 const nowLinkEl = document.getElementById("now-link");
 const eqEl = document.getElementById("eq");
+const nowPanelEl = document.querySelector(".now-panel");
 
 let loadInFlight = false;
 let cooldownUntil = 0;
 let nowPlayingTicker = null;
+let progressTicker = null;
+let nowPlaybackState = null;
+let currentNowSignature = "";
 
 const spotifyIcon = `
 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -27,6 +32,7 @@ const spotifyIcon = `
   <path d="m8.6 15.8c2-.5 4-.3 5.7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path>
 </svg>
 `;
+
 const refreshIcon = `
 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
   <path d="m20 7v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -61,6 +67,13 @@ function escapeHtml(str) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function buildNowSignature(item) {
+  if (!item) {
+    return "";
+  }
+  return [item.track_name || "", item.artists || "", item.album || "", item.external_url || ""].join("|");
 }
 
 async function fetchJson(url) {
@@ -110,52 +123,110 @@ function setStats(items, fetchedAt = null) {
   statUpdatedEl.textContent = fetchedAt ? fmtDate(fetchedAt) : "-";
 }
 
+function setNowProgress(progressMs, durationMs) {
+  const safeDuration = Math.max(0, Number(durationMs || 0));
+  const safeProgress = Math.min(Math.max(0, Number(progressMs || 0)), safeDuration || Number(progressMs || 0));
+
+  if (!safeDuration) {
+    nowProgressEl.textContent = "-";
+    nowProgressBarEl.style.width = "0%";
+    return;
+  }
+
+  nowProgressEl.textContent = `${fmtClockDuration(safeProgress)} / ${fmtClockDuration(safeDuration)}`;
+  const ratio = Math.max(0, Math.min(100, (safeProgress / safeDuration) * 100));
+  nowProgressBarEl.style.width = `${ratio}%`;
+}
+
+function stopProgressTicker() {
+  if (progressTicker) {
+    clearInterval(progressTicker);
+    progressTicker = null;
+  }
+}
+
+function startProgressTicker() {
+  stopProgressTicker();
+
+  if (!nowPlaybackState || !nowPlaybackState.isPlaying) {
+    return;
+  }
+
+  progressTicker = setInterval(() => {
+    if (!nowPlaybackState || !nowPlaybackState.isPlaying) {
+      stopProgressTicker();
+      return;
+    }
+
+    const elapsed = Date.now() - nowPlaybackState.anchorAt;
+    const nextProgress = nowPlaybackState.anchorProgress + elapsed;
+    setNowProgress(nextProgress, nowPlaybackState.duration);
+  }, 1000);
+}
+
 function renderTracks(items, fetchedAt) {
   setStats(items, fetchedAt);
+  tracksEl.classList.add("refreshing");
 
   if (!items.length) {
-    tracksEl.innerHTML = "";
+    window.setTimeout(() => {
+      tracksEl.innerHTML = "";
+      tracksEl.classList.remove("refreshing");
+    }, 180);
     statusEl.textContent = "no recent tracks found";
     return;
   }
 
   statusEl.textContent = `showing ${items.length} recent tracks`;
 
-  tracksEl.innerHTML = items
-    .map((item, index) => {
-      const cover = item.album_image
-        ? `<img class="cover" alt="album cover" src="${escapeHtml(item.album_image)}" loading="lazy" />`
-        : `<div class="cover" aria-hidden="true"></div>`;
+  window.setTimeout(() => {
+    tracksEl.innerHTML = items
+      .map((item, index) => {
+        const cover = item.album_image
+          ? `<img class="cover" alt="album cover" src="${escapeHtml(item.album_image)}" loading="lazy" />`
+          : `<div class="cover" aria-hidden="true"></div>`;
 
-      const spotifyLink = item.external_url
-        ? `<a class="track-link" href="${escapeHtml(item.external_url)}" target="_blank" rel="noreferrer">${spotifyIcon}open in spotify</a>`
-        : "";
+        const spotifyLink = item.external_url
+          ? `<a class="track-link" href="${escapeHtml(item.external_url)}" target="_blank" rel="noreferrer">${spotifyIcon}open in spotify</a>`
+          : "";
 
-      return `
-        <li class="track" style="--i:${index};">
-          ${cover}
-          <div class="meta">
-            <p class="name">${escapeHtml(item.track_name)}</p>
-            <p class="sub">${escapeHtml(item.artists)} • ${escapeHtml(item.album)}</p>
-            <p class="sub">played ${escapeHtml(fmtDate(item.played_at))}</p>
-            ${spotifyLink}
-          </div>
-        </li>
-      `;
-    })
-    .join("");
+        return `
+          <li class="track" style="--i:${index};">
+            ${cover}
+            <div class="meta">
+              <p class="name">${escapeHtml(item.track_name)}</p>
+              <p class="sub">${escapeHtml(item.artists)} • ${escapeHtml(item.album)}</p>
+              <p class="sub">played ${escapeHtml(fmtDate(item.played_at))}</p>
+              ${spotifyLink}
+            </div>
+          </li>
+        `;
+      })
+      .join("");
+
+    tracksEl.classList.remove("refreshing");
+  }, 180);
 }
 
 function renderNowPlaying(data) {
   const item = data?.item;
   const isPlaying = Boolean(data?.is_playing && item);
+  const signature = buildNowSignature(item);
+
+  if (signature !== currentNowSignature) {
+    nowPanelEl.classList.add("now-changing");
+    window.setTimeout(() => nowPanelEl.classList.remove("now-changing"), 520);
+  }
+  currentNowSignature = signature;
 
   if (!item) {
+    stopProgressTicker();
+    nowPlaybackState = null;
     nowCoverEl.removeAttribute("src");
     nowTrackEl.textContent = "nothing right now";
     nowArtistsEl.textContent = "-";
     nowAlbumEl.textContent = "-";
-    nowProgressEl.textContent = "-";
+    setNowProgress(0, 0);
     nowLinkEl.classList.add("hidden");
     eqEl.classList.add("off");
     return;
@@ -168,7 +239,7 @@ function renderNowPlaying(data) {
 
   const progress = Number(data.progress_ms || 0);
   const duration = Number(item.duration_ms || 0);
-  nowProgressEl.textContent = `${fmtClockDuration(progress)} / ${fmtClockDuration(duration)}`;
+  setNowProgress(progress, duration);
 
   if (item.external_url) {
     nowLinkEl.href = item.external_url;
@@ -179,13 +250,29 @@ function renderNowPlaying(data) {
 
   if (isPlaying) {
     eqEl.classList.remove("off");
+    nowPlaybackState = {
+      isPlaying: true,
+      anchorAt: Date.now(),
+      anchorProgress: progress,
+      duration
+    };
+    startProgressTicker();
   } else {
     eqEl.classList.add("off");
+    stopProgressTicker();
+    nowPlaybackState = {
+      isPlaying: false,
+      anchorAt: Date.now(),
+      anchorProgress: progress,
+      duration
+    };
   }
 }
 
 function showDisconnected() {
   tracksEl.innerHTML = "";
+  stopProgressTicker();
+  currentNowSignature = "";
   renderNowPlaying(null);
   setStats([], null);
   statusEl.textContent = "not connected. click connect spotify";
@@ -205,9 +292,12 @@ function updateRefreshButton() {
   refreshBtn.disabled = loadInFlight || cooling;
 
   if (loadInFlight) {
-    refreshBtn.textContent = "loading...";
+    refreshBtn.classList.add("loading");
+    refreshBtn.innerHTML = `${refreshIcon}loading...`;
     return;
   }
+
+  refreshBtn.classList.remove("loading");
 
   if (cooling) {
     const sec = Math.max(1, Math.ceil(remaining / 1000));
