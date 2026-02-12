@@ -16,6 +16,7 @@ const nowProgressBarEl = document.getElementById("now-progress-bar");
 const nowLinkEl = document.getElementById("now-link");
 const eqEl = document.getElementById("eq");
 const nowPanelEl = document.querySelector(".now-panel");
+const revealEls = document.querySelectorAll(".reveal");
 
 let loadInFlight = false;
 let cooldownUntil = 0;
@@ -23,6 +24,10 @@ let nowPlayingTicker = null;
 let progressTicker = null;
 let nowPlaybackState = null;
 let currentNowSignature = "";
+let latestScroll = 0;
+let scrollTicking = false;
+
+document.documentElement.classList.add("js");
 
 const spotifyIcon = `
 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -121,6 +126,44 @@ function setStats(items, fetchedAt = null) {
   statArtistsEl.textContent = String(artists.size);
   statLastEl.textContent = latest ? fmtDate(new Date(latest).toISOString()) : "none";
   statUpdatedEl.textContent = fetchedAt ? fmtDate(fetchedAt) : "-";
+}
+
+function setupRevealObserver() {
+  if (!("IntersectionObserver" in window)) {
+    for (const el of revealEls) {
+      el.classList.add("is-visible");
+    }
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      }
+    },
+    { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
+  );
+
+  for (const el of revealEls) {
+    observer.observe(el);
+  }
+}
+
+function applyScrollMotion() {
+  document.documentElement.style.setProperty("--scroll", String(latestScroll));
+  scrollTicking = false;
+}
+
+function onScroll() {
+  latestScroll = window.scrollY || window.pageYOffset || 0;
+  if (!scrollTicking) {
+    scrollTicking = true;
+    window.requestAnimationFrame(applyScrollMotion);
+  }
 }
 
 function setNowProgress(progressMs, durationMs) {
@@ -391,6 +434,10 @@ async function loadAll() {
 refreshBtn.addEventListener("click", () => {
   loadAll();
 });
+
+setupRevealObserver();
+onScroll();
+window.addEventListener("scroll", onScroll, { passive: true });
 
 setInterval(updateRefreshButton, 500);
 updateRefreshButton();
