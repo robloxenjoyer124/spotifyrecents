@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>spotify recents</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=space+mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="mast">
+        <article class="panel title-panel">
+          <h1>spotify recents</h1>
+          <p class="subtle">your latest plays</p>
+          <div class="quick-links" aria-label="external links">
+            <a
+              class="mini-link"
+              href="https://open.spotify.com/user/31f52l4x4wac6xvlu5fka2loqf44"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
+                <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                <path d="m8.6 15.8c2-.5 4-.3 5.7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              </svg>
+              spotify
+            </a>
+            <a
+              class="mini-link"
+              href="https://github.com/robloxenjoyer124"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="m12 3.3a8.7 8.7 0 0 0-2.8 16.9c.4.1.6-.2.6-.5v-1.9c-2.3.5-2.8-1-2.8-1-.4-.9-.9-1.1-.9-1.1-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.1 1.8.8 2.3.6.1-.5.3-.8.5-1-1.9-.2-3.9-.9-3.9-4.1 0-.9.3-1.6.8-2.2-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.3.8a8 8 0 0 1 4.1 0c1.6-1 2.3-.8 2.3-.8.5 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.2 0 3.2-2 3.9-3.9 4.1.3.3.6.8.6 1.6v2.4c0 .3.2.6.6.5a8.7 8.7 0 0 0-2.8-16.9z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              github @robloxenjoyer124
+            </a>
+          </div>
+        </article>
+
+        <article class="panel controls-panel">
+          <div class="controls">
+            <a class="button" href="/api/login">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
+                <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                <path d="m8.6 15.8c2-.5 4-.3 5.7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              </svg>
+              connect spotify
+            </a>
+            <button id="refresh" class="button" type="button">refresh</button>
+          </div>
+          <p id="status" class="status">loading...</p>
+        </article>
+      </section>
+
+      <section class="stats" aria-label="summary stats">
+        <article class="panel stat-card">
+          <p class="stat-label">tracks loaded</p>
+          <p id="stat-tracks" class="stat-value">0</p>
+        </article>
+        <article class="panel stat-card">
+          <p class="stat-label">unique artists</p>
+          <p id="stat-artists" class="stat-value">0</p>
+        </article>
+        <article class="panel stat-card">
+          <p class="stat-label">last played</p>
+          <p id="stat-last" class="stat-value">none</p>
+        </article>
+      </section>
+
+      <section class="panel list-panel">
+        <div class="list-head">
+          <h2>recent tracks</h2>
+        </div>
+        <ul id="tracks" class="tracks"></ul>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
