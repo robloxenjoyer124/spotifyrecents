@@ -1,11 +1,16 @@
 import express from "express";
 import dotenv from "dotenv";
 import crypto from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 dotenv.config();
 
 const app = express();
 app.set("trust proxy", 1);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicDir = path.join(__dirname, "public");
 
 const {
   spotify_client_id,
@@ -236,7 +241,7 @@ function clearSessionCookie(res) {
   res.setHeader("Set-Cookie", cookie);
 }
 
-app.use(express.static("public"));
+app.use(express.static(publicDir));
 
 app.get("/api/login", (req, res) => {
   const state = randomString(18);
@@ -354,7 +359,7 @@ app.get("/api/logout", (req, res) => {
 });
 
 app.get("*", (req, res) => {
-  res.sendFile("index.html", { root: "public" });
+  res.sendFile(path.join(publicDir, "index.html"));
 });
 
 if (!process.env.VERCEL) {
