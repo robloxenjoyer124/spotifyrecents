@@ -1,9 +1,23 @@
 const statusEl = document.getElementById("status");
 const tracksEl = document.getElementById("tracks");
 const refreshBtn = document.getElementById("refresh");
+
 const statTracksEl = document.getElementById("stat-tracks");
 const statArtistsEl = document.getElementById("stat-artists");
 const statLastEl = document.getElementById("stat-last");
+const statUpdatedEl = document.getElementById("stat-updated");
+
+const nowCoverEl = document.getElementById("now-cover");
+const nowTrackEl = document.getElementById("now-track");
+const nowArtistsEl = document.getElementById("now-artists");
+const nowAlbumEl = document.getElementById("now-album");
+const nowProgressEl = document.getElementById("now-progress");
+const nowLinkEl = document.getElementById("now-link");
+const eqEl = document.getElementById("eq");
+
+let loadInFlight = false;
+let cooldownUntil = 0;
+let nowPlayingTicker = null;
 
 const spotifyIcon = `
 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -11,6 +25,14 @@ const spotifyIcon = `
   <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
   <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
   <path d="m8.6 15.8c2-.5 4-.3 5.7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path>
+</svg>
+`;
+const refreshIcon = `
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="m20 7v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="m4 17v-5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="m20 12a8 8 0 0 0-13.6-5.6l-2.4 2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+  <path d="m4 12a8 8 0 0 0 13.6 5.6l2.4-2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
 </svg>
 `;
 
@@ -25,6 +47,13 @@ function fmtDate(iso) {
   }).format(dt);
 }
 
+function fmtClockDuration(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const min = Math.floor(total / 60);
+  const sec = String(total % 60).padStart(2, "0");
+  return `${min}:${sec}`;
+}
+
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -34,7 +63,26 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function setStats(items) {
+async function fetchJson(url) {
+  const res = await fetch(url, { credentials: "same-origin" });
+
+  if (res.status === 401) {
+    return { unauthenticated: true };
+  }
+
+  if (res.status === 429) {
+    const retryAfter = Number(res.headers.get("Retry-After") || 1);
+    return { rateLimited: true, retryAfter };
+  }
+
+  if (!res.ok) {
+    throw new Error(`http ${res.status}`);
+  }
+
+  return { data: await res.json() };
+}
+
+function setStats(items, fetchedAt = null) {
   const count = items.length;
   const artists = new Set();
 
@@ -59,10 +107,11 @@ function setStats(items) {
   statTracksEl.textContent = String(count);
   statArtistsEl.textContent = String(artists.size);
   statLastEl.textContent = latest ? fmtDate(new Date(latest).toISOString()) : "none";
+  statUpdatedEl.textContent = fetchedAt ? fmtDate(fetchedAt) : "-";
 }
 
-function renderTracks(items) {
-  setStats(items);
+function renderTracks(items, fetchedAt) {
+  setStats(items, fetchedAt);
 
   if (!items.length) {
     tracksEl.innerHTML = "";
@@ -97,43 +146,162 @@ function renderTracks(items) {
     .join("");
 }
 
+function renderNowPlaying(data) {
+  const item = data?.item;
+  const isPlaying = Boolean(data?.is_playing && item);
+
+  if (!item) {
+    nowCoverEl.removeAttribute("src");
+    nowTrackEl.textContent = "nothing right now";
+    nowArtistsEl.textContent = "-";
+    nowAlbumEl.textContent = "-";
+    nowProgressEl.textContent = "-";
+    nowLinkEl.classList.add("hidden");
+    eqEl.classList.add("off");
+    return;
+  }
+
+  nowCoverEl.src = item.album_image || "";
+  nowTrackEl.textContent = item.track_name || "unknown";
+  nowArtistsEl.textContent = item.artists || "unknown";
+  nowAlbumEl.textContent = item.album || "unknown";
+
+  const progress = Number(data.progress_ms || 0);
+  const duration = Number(item.duration_ms || 0);
+  nowProgressEl.textContent = `${fmtClockDuration(progress)} / ${fmtClockDuration(duration)}`;
+
+  if (item.external_url) {
+    nowLinkEl.href = item.external_url;
+    nowLinkEl.classList.remove("hidden");
+  } else {
+    nowLinkEl.classList.add("hidden");
+  }
+
+  if (isPlaying) {
+    eqEl.classList.remove("off");
+  } else {
+    eqEl.classList.add("off");
+  }
+}
+
 function showDisconnected() {
   tracksEl.innerHTML = "";
-  setStats([]);
+  renderNowPlaying(null);
+  setStats([], null);
   statusEl.textContent = "not connected. click connect spotify";
 }
 
 function showError() {
-  tracksEl.innerHTML = "";
-  setStats([]);
-  statusEl.textContent = "failed to load recent tracks";
+  statusEl.textContent = "failed to load data";
 }
 
-async function loadRecents() {
+function setButtonCooldown(seconds = 2.5) {
+  cooldownUntil = Date.now() + Math.floor(seconds * 1000);
+}
+
+function updateRefreshButton() {
+  const remaining = cooldownUntil - Date.now();
+  const cooling = remaining > 0;
+  refreshBtn.disabled = loadInFlight || cooling;
+
+  if (loadInFlight) {
+    refreshBtn.textContent = "loading...";
+    return;
+  }
+
+  if (cooling) {
+    const sec = Math.max(1, Math.ceil(remaining / 1000));
+    refreshBtn.textContent = `wait ${sec}s`;
+    return;
+  }
+
+  refreshBtn.innerHTML = `${refreshIcon}refresh`;
+}
+
+async function loadNowPlaying({ silent = false } = {}) {
+  try {
+    const result = await fetchJson("/api/now-playing");
+
+    if (result.unauthenticated) {
+      if (!silent) {
+        showDisconnected();
+      }
+      return;
+    }
+
+    if (result.rateLimited) {
+      if (!silent) {
+        statusEl.textContent = `slow down: retry in ${result.retryAfter}s`;
+      }
+      return;
+    }
+
+    renderNowPlaying(result.data);
+  } catch (error) {
+    if (!silent) {
+      console.error(error);
+    }
+  }
+}
+
+async function loadAll() {
+  if (loadInFlight) {
+    return;
+  }
+
+  if (Date.now() < cooldownUntil) {
+    updateRefreshButton();
+    return;
+  }
+
+  loadInFlight = true;
+  updateRefreshButton();
   statusEl.textContent = "loading...";
 
   try {
-    const res = await fetch("/api/recent", { credentials: "same-origin" });
+    const [recentResult, nowResult] = await Promise.all([
+      fetchJson("/api/recent"),
+      fetchJson("/api/now-playing")
+    ]);
 
-    if (res.status === 401) {
+    if (recentResult.unauthenticated || nowResult.unauthenticated) {
       showDisconnected();
       return;
     }
 
-    if (!res.ok) {
-      throw new Error(`http ${res.status}`);
+    if (recentResult.rateLimited || nowResult.rateLimited) {
+      const seconds = Math.max(recentResult.retryAfter || 1, nowResult.retryAfter || 1);
+      statusEl.textContent = `rate limited, retry in ${seconds}s`;
+      setButtonCooldown(seconds);
+      return;
     }
 
-    const data = await res.json();
-    renderTracks(data.items || []);
+    renderTracks(recentResult.data.items || [], recentResult.data.fetched_at || null);
+    renderNowPlaying(nowResult.data || null);
+
+    if (nowPlayingTicker) {
+      clearInterval(nowPlayingTicker);
+    }
+
+    nowPlayingTicker = setInterval(() => {
+      loadNowPlaying({ silent: true });
+    }, 25_000);
   } catch (error) {
     showError();
     console.error(error);
+  } finally {
+    loadInFlight = false;
+    if (Date.now() >= cooldownUntil) {
+      setButtonCooldown(2.5);
+    }
+    updateRefreshButton();
   }
 }
 
 refreshBtn.addEventListener("click", () => {
-  loadRecents();
+  loadAll();
 });
 
-loadRecents();
+setInterval(updateRefreshButton, 500);
+updateRefreshButton();
+loadAll();
