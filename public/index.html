@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=space+mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
@@ -21,161 +21,142 @@
     <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
-    <main class="app">
-      <section class="hero panel reveal reveal-delay-1">
-        <div class="hero-left parallax-slow">
-          <p class="kicker">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <path d="m8 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-            spotify recents
-          </p>
-          <h1>listen log for everyone</h1>
-          <p class="hero-copy">connect your spotify account and check your fresh history in real time</p>
-          <div class="button-row">
-            <a class="button button-primary" href="/api/login">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
-                <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-                <path d="m8.6 15.8c2-.5 4-.3 5.7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-              </svg>
-              connect spotify
-            </a>
-            <a class="button" href="/api/login?switch=1">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m17 5h3v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="m20 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                <path d="m7 19h-3v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="m4 19 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              </svg>
-              switch account
-            </a>
-            <a class="button" href="/api/logout">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m10 4h-4v16h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="m14 8 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="m18 12h-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              </svg>
-              disconnect
-            </a>
-            <button id="refresh" class="button" type="button">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m20 7v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="m4 17v-5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="m20 12a8 8 0 0 0-13.6-5.6l-2.4 2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                <path d="m4 12a8 8 0 0 0 13.6 5.6l2.4-2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              </svg>
-              refresh
-            </button>
-          </div>
-        </div>
 
-        <div class="hero-right parallax-fast">
-          <div class="quick-links">
-            <a
-              class="chip"
-              href="https://open.spotify.com/user/31f52l4x4wac6xvlu5fka2loqf44"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
-                <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-                <path d="m8.6 15.8c2-.5 4-.3 5.7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-              </svg>
-              spotify profile
-            </a>
-            <a class="chip" href="https://github.com/robloxenjoyer124" target="_blank" rel="noreferrer">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="m12 3.3a8.7 8.7 0 0 0-2.8 16.9c.4.1.6-.2.6-.5v-1.9c-2.3.5-2.8-1-2.8-1-.4-.9-.9-1.1-.9-1.1-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.1 1.8.8 2.3.6.1-.5.3-.8.5-1-1.9-.2-3.9-.9-3.9-4.1 0-.9.3-1.6.8-2.2-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.3.8a8 8 0 0 1 4.1 0c1.6-1 2.3-.8 2.3-.8.5 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.2 0 3.2-2 3.9-3.9 4.1.3.3.6.8.6 1.6v2.4c0 .3.2.6.6.5a8.7 8.7 0 0 0-2.8-16.9z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.2"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              github
-            </a>
-            <a class="chip" href="https://spotifyrecents.vercel.app" target="_blank" rel="noreferrer">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" />
-                <path d="m4 9h16" fill="none" stroke="currentColor" stroke-width="1.6" />
-              </svg>
-              live site
-            </a>
-          </div>
-          <p id="status" class="status">loading...</p>
+    <!-- NAV -->
+    <nav class="nav">
+      <a class="nav-wordmark" href="/">spotify recents</a>
+      <div class="nav-actions">
+        <a class="nav-btn" href="/api/login" title="connect spotify">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9"/>
+            <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7"/>
+            <path d="m8.6 15.8c2-.5 4-.3 5.7.5"/>
+          </svg>
+          <span class="nav-btn-label">connect</span>
+        </a>
+        <a class="nav-btn" href="/api/login?switch=1" title="switch account">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 5h3v3"/>
+            <path d="m20 5-5 5"/>
+            <path d="M7 19H4v-3"/>
+            <path d="m4 19 5-5"/>
+          </svg>
+          <span class="nav-btn-label">switch</span>
+        </a>
+        <a class="nav-btn" href="/api/logout" title="disconnect">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 4H6v16h4"/>
+            <path d="m14 8 4 4-4 4"/>
+            <path d="M18 12h-8"/>
+          </svg>
+          <span class="nav-btn-label">disconnect</span>
+        </a>
+      </div>
+    </nav>
+
+    <main class="app">
+
+      <!-- HERO -->
+      <section class="hero reveal reveal-1">
+        <p class="hero-kicker">your listening history, live</p>
+        <h1 class="hero-headline">YOUR LISTEN HISTORY.</h1>
+        <p class="hero-sub">connect your spotify account and see what you've been playing in real time.</p>
+        <div class="hero-actions">
+          <button id="refresh" class="btn btn-ghost" type="button">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 7v5h-5"/>
+              <path d="M4 17v-5h5"/>
+              <path d="m20 12a8 8 0 0 0-13.6-5.6l-2.4 2.6"/>
+              <path d="m4 12a8 8 0 0 0 13.6 5.6l2.4-2.6"/>
+            </svg>
+            refresh
+          </button>
+          <a class="btn btn-primary" href="/api/login">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9"/>
+              <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7"/>
+              <path d="m8.6 15.8c2-.5 4-.3 5.7.5"/>
+            </svg>
+            connect spotify
+          </a>
         </div>
       </section>
 
-      <section class="grid-main reveal reveal-delay-2">
-        <article class="panel now-panel" aria-live="polite">
-          <div class="panel-head">
-            <h2>
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m12 3v18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                <circle cx="12" cy="8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-                <circle cx="12" cy="16" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-              </svg>
-              currently listening
-            </h2>
-            <div id="eq" class="eq" aria-hidden="true">
-              <span></span><span></span><span></span>
-            </div>
+      <!-- STATUS BAR -->
+      <div class="status-bar reveal reveal-2">
+        <hr class="divider" />
+        <p id="status" class="status-text">loading...</p>
+      </div>
+
+      <!-- NOW PLAYING -->
+      <section class="now-panel panel reveal reveal-2" aria-live="polite">
+        <div class="now-header">
+          <span class="section-label">now playing</span>
+          <div id="eq" class="eq eq-off" aria-hidden="true">
+            <span></span><span></span><span></span>
           </div>
-          <div class="now-body">
-            <img id="now-cover" class="now-cover" alt="current track cover" src="" />
-            <div>
-              <p id="now-track" class="now-track">nothing right now</p>
-              <p id="now-artists" class="now-sub">-</p>
-              <p id="now-album" class="now-sub">-</p>
-              <p id="now-progress" class="now-sub">-</p>
-              <div class="progress" aria-hidden="true">
+        </div>
+        <div class="now-body">
+          <img id="now-cover" class="now-cover" src="" alt="album art" />
+          <div class="now-info">
+            <p id="now-track" class="now-track">nothing right now</p>
+            <p id="now-artists" class="now-artists">&#8212;</p>
+            <p id="now-album" class="now-album">&#8212;</p>
+            <p id="now-progress" class="now-progress-text">&#8212;</p>
+            <div class="progress-bar-wrap" aria-hidden="true">
+              <div class="progress-bar">
                 <span id="now-progress-bar"></span>
               </div>
-              <a id="now-link" class="track-link hidden" href="#" target="_blank" rel="noreferrer">open in spotify</a>
             </div>
+            <a id="now-link" class="now-link hidden" href="#" target="_blank" rel="noreferrer">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="m6.5 10.1c3.7-1.1 7.5-.8 10.9.9"/>
+                <path d="m7.5 13c2.9-.8 5.8-.6 8.4.7"/>
+                <path d="m8.6 15.8c2-.5 4-.3 5.7.5"/>
+              </svg>
+              open in spotify
+            </a>
           </div>
-        </article>
-
-        <section class="stats" aria-label="summary stats">
-          <article class="panel stat-card reveal reveal-delay-2">
-            <p class="stat-label">tracks loaded</p>
-            <p id="stat-tracks" class="stat-value">0</p>
-          </article>
-          <article class="panel stat-card reveal reveal-delay-3">
-            <p class="stat-label">unique artists</p>
-            <p id="stat-artists" class="stat-value">0</p>
-          </article>
-          <article class="panel stat-card reveal reveal-delay-4">
-            <p class="stat-label">last played</p>
-            <p id="stat-last" class="stat-value">none</p>
-          </article>
-          <article class="panel stat-card reveal reveal-delay-4">
-            <p class="stat-label">last update</p>
-            <p id="stat-updated" class="stat-value">-</p>
-          </article>
-        </section>
+        </div>
       </section>
 
-      <section class="panel list-panel reveal reveal-delay-3">
-        <div class="list-head">
-          <h2>
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="4" y="5" width="16" height="3" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <rect x="4" y="10.5" width="16" height="3" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <rect x="4" y="16" width="16" height="3" fill="none" stroke="currentColor" stroke-width="1.6" />
-            </svg>
-            recent tracks
-          </h2>
+      <!-- STATS ROW -->
+      <section class="stats-row reveal reveal-3" aria-label="summary stats">
+        <article class="stat-card">
+          <p class="stat-label">tracks loaded</p>
+          <p id="stat-tracks" class="stat-value">0</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">unique artists</p>
+          <p id="stat-artists" class="stat-value">0</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">last played</p>
+          <p id="stat-last" class="stat-value">none</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-label">last update</p>
+          <p id="stat-updated" class="stat-value">&#8212;</p>
+        </article>
+      </section>
+
+      <!-- TRACK LIST -->
+      <section class="panel list-panel reveal reveal-4">
+        <div class="list-header">
+          <span class="section-label">recent tracks</span>
         </div>
         <ul id="tracks" class="tracks"></ul>
       </section>
+
     </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>made with obsession</p>
+    </footer>
 
     <script src="/app.js" type="module"></script>
   </body>
